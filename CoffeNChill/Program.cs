@@ -1,14 +1,23 @@
+using CoffeeNChill.Services;
 using Microsoft.Azure.Functions.Worker;
-using Microsoft.Azure.Functions.Worker.Builder;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 
-var builder = FunctionsApplication.CreateBuilder(args);
+var host = new HostBuilder()
+    .ConfigureFunctionsWebApplication()
+    .ConfigureServices(services =>
+    {
+        services.AddSingleton<MenuTableService>(serviceProvider =>
+        {
+            var connectionString = Environment.GetEnvironmentVariable("AzureWebJobsStorage")
+                ?? throw new InvalidOperationException("AzureWebJobsStorage connection string is missing.");
 
-builder.ConfigureFunctionsWebApplication();
+            return new MenuTableService(connectionString);
+        });
+    })
+    .Build();
 
-builder.Services
-    .AddApplicationInsightsTelemetryWorkerService()
-    .ConfigureFunctionsApplicationInsights();
+host.Run();
 
-builder.Build().Run();
+
+
