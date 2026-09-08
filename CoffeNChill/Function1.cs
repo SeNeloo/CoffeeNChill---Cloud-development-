@@ -20,7 +20,11 @@ public class Function1
     public async Task<HttpResponseData> CreateMenuItem(
         [HttpTrigger(AuthorizationLevel.Anonymous, "post", Route = "menu")] HttpRequestData req)
     {
-        var menuItem = await JsonSerializer.DeserializeAsync<MenuItem>(req.Body);
+        var menuItem = await JsonSerializer.DeserializeAsync<MenuItem>(req.Body,
+            new JsonSerializerOptions
+            {
+                PropertyNameCaseInsensitive = true
+            });
 
         if (menuItem == null)
         {
@@ -79,7 +83,11 @@ public class Function1
         string category,
         string id)
     {
-        var menuItem = await JsonSerializer.DeserializeAsync<MenuItem>(req.Body);
+        var menuItem = await JsonSerializer.DeserializeAsync<MenuItem>(req.Body,
+            new JsonSerializerOptions
+            {
+                PropertyNameCaseInsensitive = true
+            });
 
         if (menuItem == null)
         {

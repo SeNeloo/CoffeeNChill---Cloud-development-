@@ -48,6 +48,12 @@ public class MenuTableService
 
     public async Task UpdateMenuItemAsync(MenuItem menuItem)
     {
+        var existingItem = await _tableClient.GetEntityAsync<MenuItem>(
+            menuItem.PartitionKey,
+            menuItem.RowKey);
+
+        menuItem.ETag = existingItem.Value.ETag;
+
         await _tableClient.UpdateEntityAsync(
             menuItem,
             menuItem.ETag,
