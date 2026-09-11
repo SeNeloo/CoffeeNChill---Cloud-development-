@@ -4,16 +4,19 @@ using CoffeeNChill.Models;
 using CoffeeNChill.Services;
 using Microsoft.Azure.Functions.Worker;
 using Microsoft.Azure.Functions.Worker.Http;
+using Azure.Storage.Blobs;
 
 namespace CoffeeNChill;
 
 public class Function1
 {
     private readonly MenuTableService _menuTableService;
+    private readonly StaffFileService _staffFileService;
 
-    public Function1(MenuTableService menuTableService)
+    public Function1(MenuTableService menuTableService, StaffFileService staffFileService)
     {
         _menuTableService = menuTableService;
+        _staffFileService = staffFileService;
     }
 
     [Function("CreateMenuItem")]
