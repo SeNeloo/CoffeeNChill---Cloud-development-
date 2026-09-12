@@ -18,11 +18,18 @@ var host = new HostBuilder()
         });
         services.AddSingleton<StaffFileService>(serviceProvider =>
         {
-            var connectionString = Environment.GetEnvironmentVariable("AzureWebJobsStorage")
-                ?? throw new InvalidOperationException("AzureWebJobsStorage connection string is missing.");
+            var connectionString =
+                Environment.GetEnvironmentVariable("AzureWebJobsStorage")
+                ?? throw new InvalidOperationException(
+                    "AzureWebJobsStorage connection string is missing.");
 
-            return new StaffFileService(connectionString);
+            var service = new StaffFileService(connectionString);
+
+            service.InitializeAsync().GetAwaiter().GetResult();
+
+            return service;
         });
+
 
 
     })

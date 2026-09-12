@@ -136,6 +136,7 @@ public class Function1
    [HttpTrigger(AuthorizationLevel.Anonymous, "post", Route = "staff/documents/upload")] HttpRequestData req)
     {
         var fileName = req.Url.Query
+            .TrimStart('?')
             .Split('&')
             .Select(x => x.Split('='))
             .FirstOrDefault(x => x.Length == 2 && x[0] == "fileName")?[1];
