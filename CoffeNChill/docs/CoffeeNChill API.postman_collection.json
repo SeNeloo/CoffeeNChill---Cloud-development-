@@ -2,7 +2,7 @@
   "info": {
     "_postman_id": "8b6a86cb-2758-49e6-9d4c-e28da0b77501",
     "name": "CoffeeNChill API",
-    "description": "### Welcome to Postman! This is your first collection. \n\nCollections are your starting point for building and testing APIs. You can use this one to:\n\n• Group related requests\n• Test your API in real-world scenarios\n• Document and share your requests\n\nUpdate the name and overview whenever you’re ready to make it yours.\n\n[Learn more about Postman Collections.](https://learning.postman.com/docs/collections/collections-overview/)",
+    "description": "### Welcome to Postman! This is your first collection.\n\nCollections are your starting point for building and testing APIs. You can use this one to:\n\n• Group related requests  \n• Test your API in real-world scenarios  \n• Document and share your requests\n\nUpdate the name and overview whenever you’re ready to make it yours.\n\n[Learn more about Postman Collections.](https://learning.postman.com/docs/collections/collections-overview/)",
     "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
     "_exporter_id": "58176432"
   },
@@ -17,20 +17,18 @@
         "header": [],
         "body": {
           "mode": "raw",
-          "raw": "",
+          "raw": "{\r\n    \"partitionKey\": \"Hot Drinks\",\r\n    \"rowKey\": \"COF-001\",\r\n    \"name\": \"Espresso\",\r\n    \"description\": \"Strong freshly brewed coffee\",\r\n    \"price\": 25.00,\r\n    \"isAvailable\": true\r\n}",
           "options": {
             "raw": {
-              "language": "text"
+              "language": "json"
             }
           }
         },
         "url": {
-          "raw": "http://localhost:7299/api/menu",
-          "protocol": "http",
+          "raw": "{{baseUrl}}/api/menu",
           "host": [
-            "localhost"
+            "{{baseUrl}}"
           ],
-          "port": "7299",
           "path": [
             "api",
             "menu"
@@ -57,12 +55,10 @@
           }
         },
         "url": {
-          "raw": "http://localhost:7299/api/menu",
-          "protocol": "http",
+          "raw": "{{baseUrl}}/api/menu",
           "host": [
-            "localhost"
+            "{{baseUrl}}"
           ],
-          "port": "7299",
           "path": [
             "api",
             "menu"
@@ -80,12 +76,10 @@
         "method": "GET",
         "header": [],
         "url": {
-          "raw": "http://localhost:7299/api/menu/category/Hot%20Drinks",
-          "protocol": "http",
+          "raw": "{{baseUrl}}/api/menu/category/Hot%20Drinks",
           "host": [
-            "localhost"
+            "{{baseUrl}}"
           ],
-          "port": "7299",
           "path": [
             "api",
             "menu",
@@ -106,20 +100,18 @@
         "header": [],
         "body": {
           "mode": "raw",
-          "raw": "",
+          "raw": "{\r\n    \"name\": \"Espresso Updated\",\r\n    \"description\": \"Updated freshly brewed espresso\",\r\n    \"price\": 30.00,\r\n    \"isAvailable\": false\r\n}",
           "options": {
             "raw": {
-              "language": "text"
+              "language": "json"
             }
           }
         },
         "url": {
-          "raw": "http://localhost:7299/api/menu/Hot%20Drinks/COF-001",
-          "protocol": "http",
+          "raw": "{{baseUrl}}/api/menu/Hot%20Drinks/COF-001",
           "host": [
-            "localhost"
+            "{{baseUrl}}"
           ],
-          "port": "7299",
           "path": [
             "api",
             "menu",
@@ -139,12 +131,10 @@
         "method": "DELETE",
         "header": [],
         "url": {
-          "raw": "http://localhost:7299/api/menu/Hot%20Drinks/COF-001",
-          "protocol": "http",
+          "raw": "{{baseUrl}}/api/menu/Hot%20Drinks/COF-001",
           "host": [
-            "localhost"
+            "{{baseUrl}}"
           ],
-          "port": "7299",
           "path": [
             "api",
             "menu",
@@ -168,12 +158,10 @@
           "file": {}
         },
         "url": {
-          "raw": "http://localhost:7299/api/staff/documents/upload?fileName=StaffTest.txt",
-          "protocol": "http",
+          "raw": "{{baseUrl}}/api/staff/documents/upload?fileName=StaffTest.txt",
           "host": [
-            "localhost"
+            "{{baseUrl}}"
           ],
-          "port": "7299",
           "path": [
             "api",
             "staff",
@@ -199,12 +187,10 @@
         "method": "GET",
         "header": [],
         "url": {
-          "raw": "http://localhost:7299/api/staff/documents",
-          "protocol": "http",
+          "raw": "{{baseUrl}}/api/staff/documents",
           "host": [
-            "localhost"
+            "{{baseUrl}}"
           ],
-          "port": "7299",
           "path": [
             "api",
             "staff",
@@ -223,12 +209,10 @@
         "method": "GET",
         "header": [],
         "url": {
-          "raw": "http://localhost:7299/api/staff/documents/download/StaffTest.txt",
-          "protocol": "http",
+          "raw": "{{baseUrl}}/api/staff/documents/download/StaffTest.txt",
           "host": [
-            "localhost"
+            "{{baseUrl}}"
           ],
-          "port": "7299",
           "path": [
             "api",
             "staff",
