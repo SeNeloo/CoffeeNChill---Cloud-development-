@@ -5,6 +5,7 @@ using CoffeeNChill.Services;
 using Microsoft.Azure.Functions.Worker;
 using Microsoft.Azure.Functions.Worker.Http;
 using Azure.Storage.Blobs;
+using Azure.Storage.Queues;
 
 namespace CoffeeNChill;
 
@@ -193,8 +194,100 @@ public class Function1
             return notFoundResponse;
         }
     }
+        [Function("PlaceOrderInQueue")]
+        public async Task<HttpResponseData> PlaceOrderInQueue(
+        [HttpTrigger(AuthorizationLevel.Anonymous, "post", Route = "orders/queue")] HttpRequestData req)
+        {
+            try
+            {
+                var order = await JsonSerializer.DeserializeAsync<Order>(
+                    req.Body,
+                    new JsonSerializerOptions
+                    {
+                        PropertyNameCaseInsensitive = true
+                    });
 
+                if (order == null)
+                {
+                    var badResponse = req.CreateResponse(HttpStatusCode.BadRequest);
+                    await badResponse.WriteStringAsync("Invalid order data.");
+                    return badResponse;
+                }
 
-}
+                if (string.IsNullOrWhiteSpace(order.OrderId))
+                {
+                    var badResponse = req.CreateResponse(HttpStatusCode.BadRequest);
+                    await badResponse.WriteStringAsync("OrderId is required.");
+                    return badResponse;
+                }
+
+                if (string.IsNullOrWhiteSpace(order.CustomerName))
+                {
+                    var badResponse = req.CreateResponse(HttpStatusCode.BadRequest);
+                    await badResponse.WriteStringAsync("CustomerName is required.");
+                    return badResponse;
+                }
+
+                if (order.SelectedItemSKUs == null || order.SelectedItemSKUs.Count == 0)
+                {
+                    var badResponse = req.CreateResponse(HttpStatusCode.BadRequest);
+                    await badResponse.WriteStringAsync("At least one item SKU is required.");
+                    return badResponse;
+                }
+
+                if (order.TotalPrice <= 0)
+                {
+                    var badResponse = req.CreateResponse(HttpStatusCode.BadRequest);
+                    await badResponse.WriteStringAsync("TotalPrice must be greater than zero.");
+                    return badResponse;
+                }
+
+                if (order.OrderTimestamp == default)
+                {
+                    order.OrderTimestamp = DateTime.UtcNow;
+                }
+
+                if (string.IsNullOrWhiteSpace(order.OrderDate))
+                {
+                    order.OrderDate = order.OrderTimestamp.ToString("yyyy-MM-dd");
+                }
+
+                order.Status = "Received";
+
+                string connectionString =
+                    Environment.GetEnvironmentVariable("AzureWebJobsStorage");
+
+                var queueClient = new QueueClient(
+                    connectionString,
+                    "order-processing-queue");
+
+                await queueClient.CreateIfNotExistsAsync();
+
+                string orderJson = JsonSerializer.Serialize(order);
+
+                await queueClient.SendMessageAsync(orderJson);
+
+                var response = req.CreateResponse(HttpStatusCode.Accepted);
+
+                await response.WriteAsJsonAsync(new
+                {
+                    message = "Order successfully placed in processing queue.",
+                    orderId = order.OrderId,
+                    status = order.Status
+                });
+
+                return response;
+            }
+            catch (Exception ex)
+            {
+                var errorResponse = req.CreateResponse(HttpStatusCode.InternalServerError);
+
+                await errorResponse.WriteStringAsync(
+                    $"Failed to place order in queue: {ex.Message}");
+
+                return errorResponse;
+            }
+        }
+    }
 
 
