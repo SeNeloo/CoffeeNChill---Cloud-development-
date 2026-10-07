@@ -29,6 +29,15 @@ var host = new HostBuilder()
 
             return service;
         });
+        services.AddSingleton<OrderTableService>(serviceProvider =>
+        {
+            var connectionString =
+                Environment.GetEnvironmentVariable("AzureWebJobsStorage")
+                ?? throw new InvalidOperationException(
+                    "AzureWebJobsStorage connection string is missing.");
+
+            return new OrderTableService(connectionString);
+        });
 
 
 
