@@ -1,11 +1,12 @@
-using System.Net;
-using System.Text.Json;
+using Azure.Storage.Blobs;
+using Azure.Storage.Queues;
 using CoffeeNChill.Models;
 using CoffeeNChill.Services;
 using Microsoft.Azure.Functions.Worker;
 using Microsoft.Azure.Functions.Worker.Http;
-using Azure.Storage.Blobs;
-using Azure.Storage.Queues;
+using Microsoft.Extensions.Logging;
+using System.Net;
+using System.Text.Json;
 
 namespace CoffeeNChill;
 
@@ -13,11 +14,13 @@ public class Function1
 {
     private readonly MenuTableService _menuTableService;
     private readonly StaffFileService _staffFileService;
+    private readonly OrderTableService _orderTableService;
 
-    public Function1(MenuTableService menuTableService, StaffFileService staffFileService)
+    public Function1(MenuTableService menuTableService, StaffFileService staffFileService, OrderTableService orderTableService)
     {
         _menuTableService = menuTableService;
         _staffFileService = staffFileService;
+        _orderTableService = orderTableService;
     }
 
     [Function("CreateMenuItem")]
@@ -194,100 +197,191 @@ public class Function1
             return notFoundResponse;
         }
     }
-        [Function("PlaceOrderInQueue")]
-        public async Task<HttpResponseData> PlaceOrderInQueue(
-        [HttpTrigger(AuthorizationLevel.Anonymous, "post", Route = "orders/queue")] HttpRequestData req)
+    [Function("PlaceOrderInQueue")]
+    public async Task<HttpResponseData> PlaceOrderInQueue(
+    [HttpTrigger(AuthorizationLevel.Anonymous, "post", Route = "orders/queue")] HttpRequestData req)
+    {
+        try
         {
-            try
-            {
-                var order = await JsonSerializer.DeserializeAsync<Order>(
-                    req.Body,
-                    new JsonSerializerOptions
-                    {
-                        PropertyNameCaseInsensitive = true
-                    });
-
-                if (order == null)
+            var order = await JsonSerializer.DeserializeAsync<Order>(
+                req.Body,
+                new JsonSerializerOptions
                 {
-                    var badResponse = req.CreateResponse(HttpStatusCode.BadRequest);
-                    await badResponse.WriteStringAsync("Invalid order data.");
-                    return badResponse;
-                }
-
-                if (string.IsNullOrWhiteSpace(order.OrderId))
-                {
-                    var badResponse = req.CreateResponse(HttpStatusCode.BadRequest);
-                    await badResponse.WriteStringAsync("OrderId is required.");
-                    return badResponse;
-                }
-
-                if (string.IsNullOrWhiteSpace(order.CustomerName))
-                {
-                    var badResponse = req.CreateResponse(HttpStatusCode.BadRequest);
-                    await badResponse.WriteStringAsync("CustomerName is required.");
-                    return badResponse;
-                }
-
-                if (order.SelectedItemSKUs == null || order.SelectedItemSKUs.Count == 0)
-                {
-                    var badResponse = req.CreateResponse(HttpStatusCode.BadRequest);
-                    await badResponse.WriteStringAsync("At least one item SKU is required.");
-                    return badResponse;
-                }
-
-                if (order.TotalPrice <= 0)
-                {
-                    var badResponse = req.CreateResponse(HttpStatusCode.BadRequest);
-                    await badResponse.WriteStringAsync("TotalPrice must be greater than zero.");
-                    return badResponse;
-                }
-
-                if (order.OrderTimestamp == default)
-                {
-                    order.OrderTimestamp = DateTime.UtcNow;
-                }
-
-                if (string.IsNullOrWhiteSpace(order.OrderDate))
-                {
-                    order.OrderDate = order.OrderTimestamp.ToString("yyyy-MM-dd");
-                }
-
-                order.Status = "Received";
-
-                string connectionString =
-                    Environment.GetEnvironmentVariable("AzureWebJobsStorage");
-
-                var queueClient = new QueueClient(
-                    connectionString,
-                    "order-processing-queue");
-
-                await queueClient.CreateIfNotExistsAsync();
-
-                string orderJson = JsonSerializer.Serialize(order);
-
-                await queueClient.SendMessageAsync(orderJson);
-
-                var response = req.CreateResponse(HttpStatusCode.Accepted);
-
-                await response.WriteAsJsonAsync(new
-                {
-                    message = "Order successfully placed in processing queue.",
-                    orderId = order.OrderId,
-                    status = order.Status
+                    PropertyNameCaseInsensitive = true
                 });
 
-                return response;
-            }
-            catch (Exception ex)
+            if (order == null)
             {
-                var errorResponse = req.CreateResponse(HttpStatusCode.InternalServerError);
-
-                await errorResponse.WriteStringAsync(
-                    $"Failed to place order in queue: {ex.Message}");
-
-                return errorResponse;
+                var badResponse = req.CreateResponse(HttpStatusCode.BadRequest);
+                await badResponse.WriteStringAsync("Invalid order data.");
+                return badResponse;
             }
+
+            if (string.IsNullOrWhiteSpace(order.OrderId))
+            {
+                var badResponse = req.CreateResponse(HttpStatusCode.BadRequest);
+                await badResponse.WriteStringAsync("OrderId is required.");
+                return badResponse;
+            }
+
+            if (string.IsNullOrWhiteSpace(order.CustomerName))
+            {
+                var badResponse = req.CreateResponse(HttpStatusCode.BadRequest);
+                await badResponse.WriteStringAsync("CustomerName is required.");
+                return badResponse;
+            }
+
+            if (order.SelectedItemSKUs == null || order.SelectedItemSKUs.Count == 0)
+            {
+                var badResponse = req.CreateResponse(HttpStatusCode.BadRequest);
+                await badResponse.WriteStringAsync("At least one item SKU is required.");
+                return badResponse;
+            }
+
+            if (order.TotalPrice <= 0)
+            {
+                var badResponse = req.CreateResponse(HttpStatusCode.BadRequest);
+                await badResponse.WriteStringAsync("TotalPrice must be greater than zero.");
+                return badResponse;
+            }
+
+            if (order.OrderTimestamp == default)
+            {
+                order.OrderTimestamp = DateTime.UtcNow;
+            }
+
+            if (string.IsNullOrWhiteSpace(order.OrderDate))
+            {
+                order.OrderDate = order.OrderTimestamp.ToString("yyyy-MM-dd");
+            }
+
+            order.Status = "Received";
+
+            string connectionString =
+                Environment.GetEnvironmentVariable("AzureWebJobsStorage");
+
+            var queueClient = new QueueClient(
+                connectionString,
+                "order-processing-queue");
+
+            await queueClient.CreateIfNotExistsAsync();
+
+            string orderJson = JsonSerializer.Serialize(order);
+
+            await queueClient.SendMessageAsync(orderJson);
+
+            var response = req.CreateResponse(HttpStatusCode.Accepted);
+
+            await response.WriteAsJsonAsync(new
+            {
+                message = "Order successfully placed in processing queue.",
+                orderId = order.OrderId,
+                status = order.Status
+            });
+
+            return response;
+        }
+        catch (Exception ex)
+        {
+            var errorResponse = req.CreateResponse(HttpStatusCode.InternalServerError);
+
+            await errorResponse.WriteStringAsync(
+                $"Failed to place order in queue: {ex.Message}");
+
+            return errorResponse;
         }
     }
+    
+[Function("ProcessOrderQueue")]
+    public async Task ProcessOrderQueue(
+    [QueueTrigger("order-processing-queue",
+        Connection = "AzureWebJobsStorage")] string queueMessage,
+    FunctionContext context)
+    {
+        var logger = context.GetLogger("ProcessOrderQueue");
+
+        try
+        {
+            var order = JsonSerializer.Deserialize<Order>(
+                queueMessage,
+                new JsonSerializerOptions
+                {
+                    PropertyNameCaseInsensitive = true
+                });
+
+            if (order == null)
+            {
+                logger.LogError("Queue message could not be converted into an Order.");
+                return;
+            }
+
+            logger.LogInformation(
+                "Processing order {OrderId} for {CustomerName}.",
+                order.OrderId,
+                order.CustomerName);
+
+            order.Status = "Received";
+
+            await _orderTableService.CreateOrderAsync(
+                order.OrderId,
+                order.CustomerName,
+                order.SelectedItemSKUs,
+                order.TotalPrice,
+                order.OrderTimestamp,
+                order.OrderDate,
+                order.Status);
+
+            logger.LogInformation(
+                "Order {OrderId} saved with status Received.",
+                order.OrderId);
+
+            order.Status = "Preparing";
+
+            await _orderTableService.UpdateOrderStatusAsync(
+                order.OrderDate,
+                order.OrderId,
+                order.Status);
+
+            logger.LogInformation(
+                "Order {OrderId} status updated to Preparing.",
+                order.OrderId);
+
+            await Task.Delay(1000);
+
+            order.Status = "Ready";
+
+            await _orderTableService.UpdateOrderStatusAsync(
+                order.OrderDate,
+                order.OrderId,
+                order.Status);
+
+            logger.LogInformation(
+                "Order {OrderId} status updated to Ready.",
+                order.OrderId);
+
+            await Task.Delay(1000);
+
+            order.Status = "Collected";
+
+            await _orderTableService.UpdateOrderStatusAsync(
+                order.OrderDate,
+                order.OrderId,
+                order.Status);
+
+            logger.LogInformation(
+                "Order {OrderId} status updated to Collected.",
+                order.OrderId);
+        }
+        catch (Exception ex)
+        {
+            logger.LogError(
+                ex,
+                "Error processing order queue message.");
+
+            throw;
+        }
+    }
+}
+
 
 

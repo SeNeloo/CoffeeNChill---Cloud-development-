@@ -36,7 +36,7 @@ public class OrderTableService
         entity["SelectedItemSKUs"] =
             JsonSerializer.Serialize(selectedItemSKUs);
         entity["TotalPrice"] = totalPrice;
-        entity["OrderTimestamp"] = orderTimestamp;
+        entity["OrderTimestamp"] = new DateTimeOffset(orderTimestamp);
         entity["Status"] = status;
 
         await _tableClient.AddEntityAsync(entity);
