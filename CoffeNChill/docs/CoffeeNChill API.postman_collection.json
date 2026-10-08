@@ -8,7 +8,7 @@
   },
   "item": [
     {
-      "name": "http://localhost:7299/api/menu",
+      "name": "Place order in queue",
       "request": {
         "auth": {
           "type": "noauth"
@@ -220,6 +220,17 @@
             "download",
             "StaffTest.txt"
           ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "New Request",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": ""
         }
       },
       "response": []
