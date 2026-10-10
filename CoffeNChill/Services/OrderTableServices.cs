@@ -10,11 +10,16 @@ public class OrderTableService
 
     public OrderTableService(string connectionString)
     {
-        var serviceClient = new TableServiceClient(connectionString);
+        Console.WriteLine("OrderTableService: Initializing...");
 
+        var serviceClient = new TableServiceClient(connectionString);
         _tableClient = serviceClient.GetTableClient("Orders");
 
+        Console.WriteLine("OrderTableService: Creating Orders table...");
+
         _tableClient.CreateIfNotExists();
+
+        Console.WriteLine("OrderTableService: Orders table created or already exists.");
     }
 
     public async Task CreateOrderAsync(
@@ -39,7 +44,7 @@ public class OrderTableService
         entity["OrderTimestamp"] = new DateTimeOffset(orderTimestamp);
         entity["Status"] = status;
 
-        await _tableClient.AddEntityAsync(entity);
+        await _tableClient.UpsertEntityAsync(entity, TableUpdateMode.Replace);
     }
 
     public async Task UpdateOrderStatusAsync(
