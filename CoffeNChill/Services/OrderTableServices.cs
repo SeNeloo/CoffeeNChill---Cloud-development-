@@ -1,6 +1,7 @@
 ﻿using Azure;
 using Azure.Data.Tables;
 using System.Text.Json;
+using System.Collections.Generic;
 
 namespace CoffeeNChill.Services;
 
@@ -64,5 +65,16 @@ public class OrderTableService
             entity,
             entity.ETag,
             TableUpdateMode.Merge);
+    }
+    public async Task<List<TableEntity>> GetAllOrdersAsync()
+    {
+        var orders = new List<TableEntity>();
+
+        await foreach (var entity in _tableClient.QueryAsync<TableEntity>())
+        {
+            orders.Add(entity);
+        }
+
+        return orders;
     }
 }

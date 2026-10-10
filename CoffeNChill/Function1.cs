@@ -371,6 +371,20 @@ public class Function1
             logger.LogInformation(
                 "Order {OrderId} status updated to Collected.",
                 order.OrderId);
+
+            var allOrders = await _orderTableService.GetAllOrdersAsync();
+
+            logger.LogInformation(
+                "ORDERS TABLE TEST: Found {Count} order(s).",
+                allOrders.Count);
+
+            foreach (var savedOrder in allOrders)
+            {
+                logger.LogInformation(
+                    "ORDER FOUND: PartitionKey={PartitionKey}, RowKey={RowKey}",
+                    savedOrder.PartitionKey,
+                    savedOrder.RowKey);
+            }
         }
         catch (Exception ex)
         {

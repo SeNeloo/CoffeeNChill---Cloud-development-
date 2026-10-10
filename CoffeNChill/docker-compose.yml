@@ -20,7 +20,6 @@
       retries: 20
       start_period: 5s
   coffeenchill-functions:
-    build: .
     image: neloo/coffeenchill-functions:v2.0
     depends_on:
       azurite:

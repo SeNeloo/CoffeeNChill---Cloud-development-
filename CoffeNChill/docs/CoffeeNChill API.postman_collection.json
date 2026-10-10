@@ -1,14 +1,14 @@
 {
   "info": {
-    "_postman_id": "8b6a86cb-2758-49e6-9d4c-e28da0b77501",
+    "_postman_id": "a04884c0-66a4-4b91-9691-0912eec6d383",
     "name": "CoffeeNChill API",
-    "description": "### Welcome to Postman! This is your first collection.\n\nCollections are your starting point for building and testing APIs. You can use this one to:\n\n• Group related requests  \n• Test your API in real-world scenarios  \n• Document and share your requests\n\nUpdate the name and overview whenever you’re ready to make it yours.\n\n[Learn more about Postman Collections.](https://learning.postman.com/docs/collections/collections-overview/)",
+    "description": "### Welcome to Postman! This is your first collection. \n\nCollections are your starting point for building and testing APIs. You can use this one to:\n\n• Group related requests\n• Test your API in real-world scenarios\n• Document and share your requests\n\nUpdate the name and overview whenever you’re ready to make it yours.\n\n[Learn more about Postman Collections.](https://learning.postman.com/docs/collections/collections-overview/)",
     "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
-    "_exporter_id": "58176432"
+    "_exporter_id": "58176427"
   },
   "item": [
     {
-      "name": "Place order in queue",
+      "name": "http://localhost:7299/api/menu",
       "request": {
         "auth": {
           "type": "noauth"
@@ -17,18 +17,20 @@
         "header": [],
         "body": {
           "mode": "raw",
-          "raw": "{\r\n    \"partitionKey\": \"Hot Drinks\",\r\n    \"rowKey\": \"COF-001\",\r\n    \"name\": \"Espresso\",\r\n    \"description\": \"Strong freshly brewed coffee\",\r\n    \"price\": 25.00,\r\n    \"isAvailable\": true\r\n}",
+          "raw": "",
           "options": {
             "raw": {
-              "language": "json"
+              "language": "text"
             }
           }
         },
         "url": {
-          "raw": "{{baseUrl}}/api/menu",
+          "raw": "http://localhost:7299/api/menu",
+          "protocol": "http",
           "host": [
-            "{{baseUrl}}"
+            "localhost"
           ],
+          "port": "7299",
           "path": [
             "api",
             "menu"
@@ -45,20 +47,13 @@
         },
         "method": "GET",
         "header": [],
-        "body": {
-          "mode": "raw",
-          "raw": "",
-          "options": {
-            "raw": {
-              "language": "text"
-            }
-          }
-        },
         "url": {
-          "raw": "{{baseUrl}}/api/menu",
+          "raw": "http://localhost:7299/api/menu",
+          "protocol": "http",
           "host": [
-            "{{baseUrl}}"
+            "localhost"
           ],
+          "port": "7299",
           "path": [
             "api",
             "menu"
@@ -76,10 +71,12 @@
         "method": "GET",
         "header": [],
         "url": {
-          "raw": "{{baseUrl}}/api/menu/category/Hot%20Drinks",
+          "raw": "http://localhost:7299/api/menu/category/Hot%20Drinks",
+          "protocol": "http",
           "host": [
-            "{{baseUrl}}"
+            "localhost"
           ],
+          "port": "7299",
           "path": [
             "api",
             "menu",
@@ -100,18 +97,20 @@
         "header": [],
         "body": {
           "mode": "raw",
-          "raw": "{\r\n    \"name\": \"Espresso Updated\",\r\n    \"description\": \"Updated freshly brewed espresso\",\r\n    \"price\": 30.00,\r\n    \"isAvailable\": false\r\n}",
+          "raw": "",
           "options": {
             "raw": {
-              "language": "json"
+              "language": "text"
             }
           }
         },
         "url": {
-          "raw": "{{baseUrl}}/api/menu/Hot%20Drinks/COF-001",
+          "raw": "http://localhost:7299/api/menu/Hot%20Drinks/COF-001",
+          "protocol": "http",
           "host": [
-            "{{baseUrl}}"
+            "localhost"
           ],
+          "port": "7299",
           "path": [
             "api",
             "menu",
@@ -131,10 +130,12 @@
         "method": "DELETE",
         "header": [],
         "url": {
-          "raw": "{{baseUrl}}/api/menu/Hot%20Drinks/COF-001",
+          "raw": "http://localhost:7299/api/menu/Hot%20Drinks/COF-001",
+          "protocol": "http",
           "host": [
-            "{{baseUrl}}"
+            "localhost"
           ],
+          "port": "7299",
           "path": [
             "api",
             "menu",
@@ -158,10 +159,12 @@
           "file": {}
         },
         "url": {
-          "raw": "{{baseUrl}}/api/staff/documents/upload?fileName=StaffTest.txt",
+          "raw": "http://localhost:7299/api/staff/documents/upload?fileName=StaffTest.txt",
+          "protocol": "http",
           "host": [
-            "{{baseUrl}}"
+            "localhost"
           ],
+          "port": "7299",
           "path": [
             "api",
             "staff",
@@ -187,10 +190,12 @@
         "method": "GET",
         "header": [],
         "url": {
-          "raw": "{{baseUrl}}/api/staff/documents",
+          "raw": "http://localhost:7299/api/staff/documents",
+          "protocol": "http",
           "host": [
-            "{{baseUrl}}"
+            "localhost"
           ],
+          "port": "7299",
           "path": [
             "api",
             "staff",
@@ -209,10 +214,12 @@
         "method": "GET",
         "header": [],
         "url": {
-          "raw": "{{baseUrl}}/api/staff/documents/download/StaffTest.txt",
+          "raw": "http://localhost:7299/api/staff/documents/download/StaffTest.txt",
+          "protocol": "http",
           "host": [
-            "{{baseUrl}}"
+            "localhost"
           ],
+          "port": "7299",
           "path": [
             "api",
             "staff",
@@ -236,12 +243,31 @@
       "response": []
     },
     {
-      "name": "New Request",
+      "name": "Place Order in Queue",
       "request": {
-        "method": "GET",
+        "method": "POST",
         "header": [],
+        "body": {
+          "mode": "raw",
+          "raw": "{\r\n  \"OrderId\": \"ORD-2026-8822\",\r\n  \"CustomerName\": \"PM Test\",\r\n  \"SelectedItemSKUs\": [\"COF-001\", \"PAS-104\"],\r\n  \"TotalPrice\": 65.00,\r\n  \"OrderTimestamp\": \"2026-10-12T10:15:00Z\"\r\n}\r\n",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
         "url": {
-          "raw": ""
+          "raw": "http://localhost:8080/api/orders/queue",
+          "protocol": "http",
+          "host": [
+            "localhost"
+          ],
+          "port": "8080",
+          "path": [
+            "api",
+            "orders",
+            "queue"
+          ]
         }
       },
       "response": []
