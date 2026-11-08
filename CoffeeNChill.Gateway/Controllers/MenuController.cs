@@ -5,6 +5,9 @@ using System.Text.Json;
 
 namespace CoffeeNChill.Gateway.Controllers
 {
+    /// <summary>
+    /// Provides API endpoints for managing coffee shop menu items.
+    /// </summary>
     [ApiController]
     [Route("api/menu")]
     public class MenuController : ControllerBase
@@ -16,6 +19,9 @@ namespace CoffeeNChill.Gateway.Controllers
             _proxy = proxy;
         }
 
+        /// <summary>
+        /// Retrieves all menu items.
+        /// </summary>
         [HttpGet]
         public async Task<IActionResult> GetAllMenuItems()
         {
@@ -24,7 +30,9 @@ namespace CoffeeNChill.Gateway.Controllers
 
             return await CreateResult(response);
         }
-
+        /// <summary>
+        /// Retrieves menu items belonging to a specific category.
+        /// </summary>
         [HttpGet("category/{category}")]
         public async Task<IActionResult> GetMenuItemsByCategory(string category)
         {
@@ -34,7 +42,9 @@ namespace CoffeeNChill.Gateway.Controllers
 
             return await CreateResult(response);
         }
-
+        /// <summary>
+        /// Creates a new menu item.
+        /// </summary>
         [HttpPost]
         public async Task<IActionResult> CreateMenuItem(
             [FromBody] JsonElement menuItem)
@@ -49,7 +59,9 @@ namespace CoffeeNChill.Gateway.Controllers
 
             return await CreateResult(response);
         }
-
+        /// <summary>
+        /// Updates an existing menu item.
+        /// </summary>
         [HttpPut("category/{category}/{id}")]
         public async Task<IActionResult> UpdateMenuItem(
             string category,
@@ -68,7 +80,9 @@ namespace CoffeeNChill.Gateway.Controllers
 
             return await CreateResult(response);
         }
-
+        /// <summary>
+        /// Deletes a menu item.
+        /// </summary>
         [HttpDelete("category/{category}/{id}")]
         public async Task<IActionResult> DeleteMenuItem(
             string category,

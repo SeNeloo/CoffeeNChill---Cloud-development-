@@ -1,3 +1,4 @@
+using CoffeeNChill.Gateway.Middleware;
 using CoffeeNChill.Gateway.Services;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -6,7 +7,14 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddControllers();
 
 builder.Services.AddEndpointsApiExplorer();
-builder.Services.AddSwaggerGen();
+builder.Services.AddSwaggerGen(options =>
+{
+    var xmlFile = $"{System.Reflection.Assembly.GetExecutingAssembly().GetName().Name}.xml";
+    var xmlPath = System.IO.Path.Combine(AppContext.BaseDirectory, xmlFile);
+
+    options.IncludeXmlComments(xmlPath);
+});
+
 
 // Register application services
 builder.Services.AddHttpClient();
@@ -14,6 +22,8 @@ builder.Services.AddHttpClient();
 builder.Services.AddScoped<FunctionsProxyService>();
 
 var app = builder.Build();
+app.UseMiddleware<GlobalExceptionMiddleware>();
+
 
 // Enable Swagger
 if (app.Environment.IsDevelopment())
