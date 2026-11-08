@@ -85,7 +85,7 @@ public class Function1
 
     [Function("UpdateMenuItem")]
     public async Task<HttpResponseData> UpdateMenuItem(
-        [HttpTrigger(AuthorizationLevel.Anonymous, "put", Route = "menu/{category}/{id}")]
+        [HttpTrigger(AuthorizationLevel.Anonymous, "put", Route = "menu/category/{category}/{id}")]
         HttpRequestData req,
         string category,
         string id)

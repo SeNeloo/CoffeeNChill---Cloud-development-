@@ -1,0 +1,99 @@
+﻿using Microsoft.AspNetCore.Mvc;
+using CoffeeNChill.Gateway.Services;
+using System.Text;
+using System.Text.Json;
+
+namespace CoffeeNChill.Gateway.Controllers
+{
+    [ApiController]
+    [Route("api/menu")]
+    public class MenuController : ControllerBase
+    {
+        private readonly FunctionsProxyService _proxy;
+
+        public MenuController(FunctionsProxyService proxy)
+        {
+            _proxy = proxy;
+        }
+
+        [HttpGet]
+        public async Task<IActionResult> GetAllMenuItems()
+        {
+            var response = await _proxy.ForwardRequestAsync(
+                HttpMethod.Get, "api/menu");
+
+            return await CreateResult(response);
+        }
+
+        [HttpGet("category/{category}")]
+        public async Task<IActionResult> GetMenuItemsByCategory(string category)
+        {
+            var response = await _proxy.ForwardRequestAsync(
+                HttpMethod.Get,
+                $"api/menu/category/{Uri.EscapeDataString(category)}");
+
+            return await CreateResult(response);
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> CreateMenuItem(
+            [FromBody] JsonElement menuItem)
+        {
+            var content = new StringContent(
+                menuItem.GetRawText(),
+                Encoding.UTF8,
+                "application/json");
+
+            var response = await _proxy.ForwardRequestAsync(
+                HttpMethod.Post, "api/menu", content);
+
+            return await CreateResult(response);
+        }
+
+        [HttpPut("category/{category}/{id}")]
+        public async Task<IActionResult> UpdateMenuItem(
+            string category,
+            string id,
+            [FromBody] JsonElement menuItem)
+        {
+            var content = new StringContent(
+                menuItem.GetRawText(),
+                Encoding.UTF8,
+                "application/json");
+
+            var response = await _proxy.ForwardRequestAsync(
+                HttpMethod.Put,
+                $"api/menu/{Uri.EscapeDataString(category)}/{Uri.EscapeDataString(id)}",
+                content);
+
+            return await CreateResult(response);
+        }
+
+        [HttpDelete("category/{category}/{id}")]
+        public async Task<IActionResult> DeleteMenuItem(
+            string category,
+            string id)
+        {
+            var response = await _proxy.ForwardRequestAsync(
+                HttpMethod.Delete,
+                $"api/menu/{Uri.EscapeDataString(category)}/{Uri.EscapeDataString(id)}");
+
+            return await CreateResult(response);
+        }
+
+        private async Task<IActionResult> CreateResult(
+            HttpResponseMessage response)
+        {
+            var content = await response.Content.ReadAsStringAsync();
+
+            return new ContentResult
+            {
+                StatusCode = (int)response.StatusCode,
+                Content = content,
+                ContentType = response.Content.Headers.ContentType?.ToString()
+                    ?? "application/json"
+            };
+        }
+    }
+}
+
