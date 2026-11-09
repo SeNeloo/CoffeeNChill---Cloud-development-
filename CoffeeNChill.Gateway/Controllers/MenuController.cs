@@ -2,6 +2,7 @@
 using CoffeeNChill.Gateway.Services;
 using System.Text;
 using System.Text.Json;
+using Microsoft.AspNetCore.Authorization;
 
 namespace CoffeeNChill.Gateway.Controllers
 {
@@ -10,6 +11,7 @@ namespace CoffeeNChill.Gateway.Controllers
     /// </summary>
     [ApiController]
     [Route("api/menu")]
+    [Authorize]
     public class MenuController : ControllerBase
     {
         private readonly FunctionsProxyService _proxy;

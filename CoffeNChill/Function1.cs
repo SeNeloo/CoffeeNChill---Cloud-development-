@@ -563,6 +563,7 @@ public class Function1
         var claims = new[]
         {
         new Claim(ClaimTypes.NameIdentifier, user.RowKey),
+
         new Claim(ClaimTypes.Email, user.Email),
         new Claim(ClaimTypes.Role, user.Role)
     };
