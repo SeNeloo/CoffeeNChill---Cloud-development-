@@ -15,12 +15,14 @@ public class Function1
     private readonly MenuTableService _menuTableService;
     private readonly StaffFileService _staffFileService;
     private readonly OrderTableService _orderTableService;
+    private readonly UserTableService _userTableService;
 
-    public Function1(MenuTableService menuTableService, StaffFileService staffFileService, OrderTableService orderTableService)
+    public Function1(MenuTableService menuTableService, StaffFileService staffFileService, OrderTableService orderTableService, UserTableService userTableSer)
     {
         _menuTableService = menuTableService;
         _staffFileService = staffFileService;
         _orderTableService = orderTableService;
+        _userTableService = userTableSer;
     }
 
     [Function("CreateMenuItem")]
@@ -85,7 +87,7 @@ public class Function1
 
     [Function("UpdateMenuItem")]
     public async Task<HttpResponseData> UpdateMenuItem(
-        [HttpTrigger(AuthorizationLevel.Anonymous, "put", Route = "menu/category/{category}/{id}")]
+        [HttpTrigger(AuthorizationLevel.Anonymous, "put", Route = "menu/{category}/{id}")]
         HttpRequestData req,
         string category,
         string id)
@@ -395,7 +397,101 @@ public class Function1
             throw;
         }
     }
+    [Function("RegisterUser")]
+    public async Task<HttpResponseData> RegisterUser(
+    [HttpTrigger(AuthorizationLevel.Anonymous, "post", Route = "users/register")]
+    HttpRequestData req)
+    {
+        var request = await JsonSerializer.DeserializeAsync<RegisterRequest>(
+            req.Body,
+            new JsonSerializerOptions
+            {
+                PropertyNameCaseInsensitive = true
+            });
+
+        if (request == null ||
+            string.IsNullOrWhiteSpace(request.FirstName) ||
+            string.IsNullOrWhiteSpace(request.LastName) ||
+            string.IsNullOrWhiteSpace(request.Email) ||
+            string.IsNullOrWhiteSpace(request.Password))
+        {
+            var badRequest = req.CreateResponse(
+                System.Net.HttpStatusCode.BadRequest);
+
+            await badRequest.WriteStringAsync(
+                "All registration fields are required.");
+
+            return badRequest;
+        }
+
+        string email = request.Email.Trim().ToLowerInvariant();
+
+        if (!System.Text.RegularExpressions.Regex.IsMatch(
+            email,
+            @"^[^@\s]+@[^@\s]+\.[^@\s]+$"))
+        {
+            var badRequest = req.CreateResponse(
+                System.Net.HttpStatusCode.BadRequest);
+
+            await badRequest.WriteStringAsync("Please enter a valid email address.");
+
+            return badRequest;
+        }
+
+        if (request.Password.Length < 8)
+        {
+            var badRequest = req.CreateResponse(
+                System.Net.HttpStatusCode.BadRequest);
+
+            await badRequest.WriteStringAsync(
+                "Password must contain at least 8 characters.");
+
+            return badRequest;
+        }
+
+        var existingUser = await _userTableService.GetUserByEmailAsync(email);
+
+        if (existingUser != null)
+        {
+            var conflict = req.CreateResponse(
+                System.Net.HttpStatusCode.Conflict);
+
+            await conflict.WriteStringAsync(
+                "An account with this email already exists.");
+
+            return conflict;
+        }
+
+        var user = new User
+        {
+            PartitionKey = "Users",
+            RowKey = Guid.NewGuid().ToString(),
+            FirstName = request.FirstName.Trim(),
+            LastName = request.LastName.Trim(),
+            Email = email,
+            PasswordHash = BCrypt.Net.BCrypt.HashPassword(request.Password),
+            Role = "User"
+        };
+
+        await _userTableService.CreateUserAsync(user);
+
+        var response = req.CreateResponse(
+            System.Net.HttpStatusCode.Created);
+
+        await response.WriteAsJsonAsync(new
+        {
+            Message = "User registered successfully.",
+            user.RowKey,
+            user.FirstName,
+            user.LastName,
+            user.Email,
+            user.Role
+        });
+
+        return response;
+    }
 }
 
 
 
+  
