@@ -7,6 +7,10 @@ using Microsoft.Azure.Functions.Worker.Http;
 using Microsoft.Extensions.Logging;
 using System.Net;
 using System.Text.Json;
+using System.IdentityModel.Tokens.Jwt;
+using System.Security.Claims;
+using System.Text;
+using Microsoft.IdentityModel.Tokens;
 
 namespace CoffeeNChill;
 
@@ -486,6 +490,108 @@ public class Function1
             user.LastName,
             user.Email,
             user.Role
+        });
+
+        return response;
+    }
+    [Function("LoginUser")]
+    public async Task<HttpResponseData> LoginUser(
+    [HttpTrigger(AuthorizationLevel.Anonymous, "post", Route = "users/login")]
+    HttpRequestData req)
+    {
+        var request = await JsonSerializer.DeserializeAsync<LoginRequest>(
+            req.Body,
+            new JsonSerializerOptions
+            {
+                PropertyNameCaseInsensitive = true
+            });
+
+        if (request == null ||
+            string.IsNullOrWhiteSpace(request.Email) ||
+            string.IsNullOrWhiteSpace(request.Password))
+        {
+            var badRequest = req.CreateResponse(
+                System.Net.HttpStatusCode.BadRequest);
+
+            await badRequest.WriteStringAsync(
+                "Email and password are required.");
+
+            return badRequest;
+        }
+
+        string email = request.Email.Trim().ToLowerInvariant();
+
+        var user = await _userTableService.GetUserByEmailAsync(email);
+
+        if (user == null ||
+            !BCrypt.Net.BCrypt.Verify(request.Password, user.PasswordHash))
+        {
+            var unauthorized = req.CreateResponse(
+                System.Net.HttpStatusCode.Unauthorized);
+
+            await unauthorized.WriteStringAsync(
+                "Invalid email or password.");
+
+            return unauthorized;
+        }
+
+        string? secret = Environment.GetEnvironmentVariable("JwtSecret");
+        string? issuer = Environment.GetEnvironmentVariable("JwtIssuer");
+        string? audience = Environment.GetEnvironmentVariable("JwtAudience");
+
+        if (string.IsNullOrWhiteSpace(secret) ||
+            string.IsNullOrWhiteSpace(issuer) ||
+            string.IsNullOrWhiteSpace(audience) ||
+            Encoding.UTF8.GetByteCount(secret) < 32)
+        {
+            var error = req.CreateResponse(
+                System.Net.HttpStatusCode.InternalServerError);
+
+            await error.WriteStringAsync(
+                "JWT configuration is missing or invalid.");
+
+            return error;
+        }
+
+        var key = new SymmetricSecurityKey(
+            Encoding.UTF8.GetBytes(secret));
+
+        var credentials = new SigningCredentials(
+            key,
+            SecurityAlgorithms.HmacSha256);
+
+        var claims = new[]
+        {
+        new Claim(ClaimTypes.NameIdentifier, user.RowKey),
+        new Claim(ClaimTypes.Email, user.Email),
+        new Claim(ClaimTypes.Role, user.Role)
+    };
+
+        var token = new JwtSecurityToken(
+            issuer: issuer,
+            audience: audience,
+            claims: claims,
+            expires: DateTime.UtcNow.AddHours(1),
+            signingCredentials: credentials);
+
+        var tokenString = new JwtSecurityTokenHandler()
+            .WriteToken(token);
+
+        var response = req.CreateResponse(
+            System.Net.HttpStatusCode.OK);
+
+        await response.WriteAsJsonAsync(new
+        {
+            Message = "Login successful.",
+            Token = tokenString,
+            User = new
+            {
+                user.RowKey,
+                user.FirstName,
+                user.LastName,
+                user.Email,
+                user.Role
+            }
         });
 
         return response;
