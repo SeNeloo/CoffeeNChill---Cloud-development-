@@ -36,7 +36,20 @@
       JwtSecret: "${JWT_SECRET}"
       JwtIssuer: "${JWT_ISSUER}"
       JwtAudience: "${JWT_AUDIENCE}"
+  coffeenchill-gateway:
+    build:
+      context: ..
+      dockerfile: CoffeeNChill.Gateway/Dockerfile
+    image: neloo/coffeenchill-gateway:v3.0
+    ports:
+      - "5146:8080"
+    environment:
+      ASPNETCORE_URLS: http://+:8080
+      ASPNETCORE_ENVIRONMENT: Development
+      Functions__BaseUrl: http://coffeenchill-functions:80/
+      Jwt__Secret: "${JWT_SECRET}"
+      Jwt__Issuer: "${JWT_ISSUER}"
+      Jwt__Audience: "${JWT_AUDIENCE}"
 
-
-volumes: 
+volumes:
   azurite-data:
