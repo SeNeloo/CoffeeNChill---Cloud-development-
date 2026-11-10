@@ -1,8 +1,12 @@
 ﻿using System.Net;
-using System.Text.Json;
+using Microsoft.AspNetCore.Http;
+using Microsoft.Extensions.Logging;
 
 namespace CoffeeNChill.Gateway.Middleware;
 
+/// <summary>
+/// Handles unhandled exceptions across the API Gateway.
+/// </summary>
 public class GlobalExceptionMiddleware
 {
     private readonly RequestDelegate _next;
@@ -16,6 +20,9 @@ public class GlobalExceptionMiddleware
         _logger = logger;
     }
 
+    /// <summary>
+    /// Processes HTTP requests and handles unexpected exceptions.
+    /// </summary>
     public async Task InvokeAsync(HttpContext context)
     {
         try
@@ -24,21 +31,26 @@ public class GlobalExceptionMiddleware
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "An unexpected error occurred.");
+            _logger.LogError(
+                ex,
+                "An unexpected error occurred while processing the request.");
 
+            if (context.Response.HasStarted)
+            {
+                throw;
+            }
+
+            context.Response.Clear();
             context.Response.StatusCode =
                 (int)HttpStatusCode.InternalServerError;
 
             context.Response.ContentType = "application/json";
 
-            var response = new
+            await context.Response.WriteAsJsonAsync(new
             {
-                StatusCode = context.Response.StatusCode,
+                StatusCode = 500,
                 Message = "An unexpected error occurred. Please try again later."
-            };
-
-            await context.Response.WriteAsync(
-                JsonSerializer.Serialize(response));
+            });
         }
     }
 }
