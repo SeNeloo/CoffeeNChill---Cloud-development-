@@ -65,9 +65,17 @@ public class AuthController : ControllerBase
         };
     }
     [Authorize]
-    [HttpGet("{userId}")]
-    public async Task<IActionResult> GetUserProfile(string userId)
+    [HttpGet("profile")]
+    public async Task<IActionResult> GetUserProfile()
     {
+        var userId = User.FindFirst(
+            System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
+
+        if (string.IsNullOrEmpty(userId))
+        {
+            return Unauthorized("User ID not found in token.");
+        }
+
         var response = await _proxy.ForwardRequestAsync(
             HttpMethod.Get,
             $"api/users/{userId}",
