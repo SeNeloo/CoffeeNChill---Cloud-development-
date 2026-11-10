@@ -2,6 +2,7 @@
 using CoffeeNChill.Gateway.Services;
 using System.Text;
 using System.Text.Json;
+using Microsoft.AspNetCore.Authorization;
 
 namespace CoffeeNChill.Gateway.Controllers;
 
@@ -53,6 +54,24 @@ public class AuthController : ControllerBase
             HttpMethod.Post,
             "api/users/login",
             content);
+
+        var body = await response.Content.ReadAsStringAsync();
+
+        return new ContentResult
+        {
+            Content = body,
+            ContentType = "application/json",
+            StatusCode = (int)response.StatusCode
+        };
+    }
+    [Authorize]
+    [HttpGet("{userId}")]
+    public async Task<IActionResult> GetUserProfile(string userId)
+    {
+        var response = await _proxy.ForwardRequestAsync(
+            HttpMethod.Get,
+            $"api/users/{userId}",
+            null);
 
         var body = await response.Content.ReadAsStringAsync();
 

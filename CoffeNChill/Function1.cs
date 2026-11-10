@@ -597,6 +597,38 @@ public class Function1
 
         return response;
     }
+    [Function("GetUserProfile")]
+    public async Task<HttpResponseData> GetUserProfile(
+    [HttpTrigger(AuthorizationLevel.Anonymous, "get", Route = "users/{userId}")]
+    HttpRequestData req,
+    string userId)
+    {
+        var user = await _userTableService.GetUserByIdAsync(userId);
+
+        if (user == null)
+        {
+            var notFound = req.CreateResponse(
+                System.Net.HttpStatusCode.NotFound);
+
+            await notFound.WriteStringAsync("User not found.");
+
+            return notFound;
+        }
+
+        var response = req.CreateResponse(
+            System.Net.HttpStatusCode.OK);
+
+        await response.WriteAsJsonAsync(new
+        {
+            user.RowKey,
+            user.FirstName,
+            user.LastName,
+            user.Email,
+            user.Role
+        });
+
+        return response;
+    }
 }
 
 
