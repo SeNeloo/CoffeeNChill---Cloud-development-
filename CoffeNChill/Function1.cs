@@ -452,7 +452,7 @@ public class Function1
 
             return badRequest;
         }
-
+          
         var existingUser = await _userTableService.GetUserByEmailAsync(email);
 
         if (existingUser != null)
