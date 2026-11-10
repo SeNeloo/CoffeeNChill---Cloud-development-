@@ -9,7 +9,6 @@ using System.Net.Http.Json;
 using System.Linq;
 using System.Collections.Generic;
 
-
 namespace CoffeeNChill.Gateway.Controllers
 {
     /// <summary>
@@ -33,11 +32,10 @@ namespace CoffeeNChill.Gateway.Controllers
 
         /// <summary>
         /// Retrieves all menu items.
+        /// Accessible to all authenticated users.
         /// </summary>
-
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
-
         [HttpGet]
         public async Task<IActionResult> GetAllMenuItems()
         {
@@ -62,8 +60,10 @@ namespace CoffeeNChill.Gateway.Controllers
 
             return Ok(menuDtos);
         }
+
         /// <summary>
         /// Retrieves menu items belonging to a specific category.
+        /// Accessible to all authenticated users.
         /// </summary>
         [HttpGet("category/{category}")]
         public async Task<IActionResult> GetMenuItemsByCategory(string category)
@@ -90,23 +90,23 @@ namespace CoffeeNChill.Gateway.Controllers
 
             return Ok(menuDtos);
         }
+
         /// <summary>
         /// Creates a new menu item.
+        /// Restricted to Admin users.
         /// </summary>
-
-
+        [Authorize(Roles = "Admin")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
-
         [HttpPost]
         public async Task<IActionResult> CreateMenuItem(
-    [FromBody] MenuItemDto menuItem)
+            [FromBody] MenuItemDto menuItem)
         {
             var entity = _mappingService.MapToEntity(menuItem);
 
             var content = new StringContent(
-                System.Text.Json.JsonSerializer.Serialize(entity),
+                JsonSerializer.Serialize(entity),
                 Encoding.UTF8,
                 "application/json");
 
@@ -115,14 +115,17 @@ namespace CoffeeNChill.Gateway.Controllers
 
             return await CreateResult(response);
         }
+
         /// <summary>
         /// Updates an existing menu item.
+        /// Restricted to Admin users.
         /// </summary>
+        [Authorize(Roles = "Admin")]
         [HttpPut("category/{category}/{id}")]
         public async Task<IActionResult> UpdateMenuItem(
-    string category,
-    string id,
-    [FromBody] MenuItemDto menuItem)
+            string category,
+            string id,
+            [FromBody] MenuItemDto menuItem)
         {
             menuItem.Category = category;
             menuItem.Id = id;
@@ -130,8 +133,8 @@ namespace CoffeeNChill.Gateway.Controllers
             var entity = _mappingService.MapToEntity(menuItem);
 
             var content = new StringContent(
-                System.Text.Json.JsonSerializer.Serialize(entity),
-                System.Text.Encoding.UTF8,
+                JsonSerializer.Serialize(entity),
+                Encoding.UTF8,
                 "application/json");
 
             var response = await _proxy.ForwardRequestAsync(
@@ -144,11 +147,13 @@ namespace CoffeeNChill.Gateway.Controllers
 
         /// <summary>
         /// Deletes a menu item.
+        /// Restricted to Admin users.
         /// </summary>
+        [Authorize(Roles = "Admin")]
         [HttpDelete("category/{category}/{id}")]
         public async Task<IActionResult> DeleteMenuItem(
-    string category,
-    string id)
+            string category,
+            string id)
         {
             var response = await _proxy.ForwardRequestAsync(
                 HttpMethod.Delete,
@@ -172,4 +177,3 @@ namespace CoffeeNChill.Gateway.Controllers
         }
     }
 }
-
