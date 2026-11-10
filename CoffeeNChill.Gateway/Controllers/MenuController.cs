@@ -24,6 +24,10 @@ namespace CoffeeNChill.Gateway.Controllers
         /// <summary>
         /// Retrieves all menu items.
         /// </summary>
+
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+
         [HttpGet]
         public async Task<IActionResult> GetAllMenuItems()
         {
@@ -47,6 +51,12 @@ namespace CoffeeNChill.Gateway.Controllers
         /// <summary>
         /// Creates a new menu item.
         /// </summary>
+
+
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+
         [HttpPost]
         public async Task<IActionResult> CreateMenuItem(
             [FromBody] JsonElement menuItem)
