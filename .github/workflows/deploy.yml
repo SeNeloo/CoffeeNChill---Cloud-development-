@@ -34,7 +34,7 @@ jobs:
       - name: Build and Push Functions Image
         uses: docker/build-push-action@v6
         with:
-          context: ./CoffeeNChill
+          context: .
           file: ./CoffeeNChill/Dockerfile
           push: ${{ github.event_name == 'push' }}
           tags: neloo/coffeenchill-functions:latest
@@ -42,7 +42,7 @@ jobs:
       - name: Build and Push Gateway Image
         uses: docker/build-push-action@v6
         with:
-          context: ./CoffeeNChill.Gateway
+          context: .
           file: ./CoffeeNChill.Gateway/Dockerfile
           push: ${{ github.event_name == 'push' }}
           tags: neloo/coffeenchill-gateway:latest
