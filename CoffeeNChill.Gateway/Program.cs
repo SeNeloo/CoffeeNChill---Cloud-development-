@@ -25,6 +25,9 @@ builder.Services.AddHttpClient();
 
 builder.Services.AddScoped<FunctionsProxyService>();
 
+builder.Services.AddScoped<MenuItemMappingService>();
+
+
 var jwtSecret = builder.Configuration["Jwt:Secret"]
     ?? throw new InvalidOperationException("JWT Secret is missing.");
 

@@ -17,7 +17,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Folder Include="DTOs\" />
+    <ProjectReference Include="..\CoffeNChill\CoffeNChill.csproj" />
   </ItemGroup>
 
 </Project>
