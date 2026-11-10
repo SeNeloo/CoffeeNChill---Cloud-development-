@@ -3,6 +3,12 @@ using CoffeeNChill.Gateway.Services;
 using System.Text;
 using System.Text.Json;
 using Microsoft.AspNetCore.Authorization;
+using CoffeeNChill.Gateway.DTOs;
+using CoffeeNChill.Models;
+using System.Net.Http.Json;
+using System.Linq;
+using System.Collections.Generic;
+
 
 namespace CoffeeNChill.Gateway.Controllers
 {
@@ -15,10 +21,14 @@ namespace CoffeeNChill.Gateway.Controllers
     public class MenuController : ControllerBase
     {
         private readonly FunctionsProxyService _proxy;
+        private readonly MenuItemMappingService _mappingService;
 
-        public MenuController(FunctionsProxyService proxy)
+        public MenuController(
+            FunctionsProxyService proxy,
+            MenuItemMappingService mappingService)
         {
             _proxy = proxy;
+            _mappingService = mappingService;
         }
 
         /// <summary>
@@ -34,7 +44,23 @@ namespace CoffeeNChill.Gateway.Controllers
             var response = await _proxy.ForwardRequestAsync(
                 HttpMethod.Get, "api/menu");
 
-            return await CreateResult(response);
+            if (!response.IsSuccessStatusCode)
+            {
+                return await CreateResult(response);
+            }
+
+            var items = await response.Content.ReadFromJsonAsync<List<MenuItem>>();
+
+            if (items == null)
+            {
+                return Ok(new List<MenuItemDto>());
+            }
+
+            var menuDtos = items
+                .Select(item => _mappingService.MapToDto(item))
+                .ToList();
+
+            return Ok(menuDtos);
         }
         /// <summary>
         /// Retrieves menu items belonging to a specific category.
@@ -46,7 +72,23 @@ namespace CoffeeNChill.Gateway.Controllers
                 HttpMethod.Get,
                 $"api/menu/category/{Uri.EscapeDataString(category)}");
 
-            return await CreateResult(response);
+            if (!response.IsSuccessStatusCode)
+            {
+                return await CreateResult(response);
+            }
+
+            var items = await response.Content.ReadFromJsonAsync<List<MenuItem>>();
+
+            if (items == null)
+            {
+                return Ok(new List<MenuItemDto>());
+            }
+
+            var menuDtos = items
+                .Select(item => _mappingService.MapToDto(item))
+                .ToList();
+
+            return Ok(menuDtos);
         }
         /// <summary>
         /// Creates a new menu item.
@@ -59,10 +101,12 @@ namespace CoffeeNChill.Gateway.Controllers
 
         [HttpPost]
         public async Task<IActionResult> CreateMenuItem(
-            [FromBody] JsonElement menuItem)
+    [FromBody] MenuItemDto menuItem)
         {
+            var entity = _mappingService.MapToEntity(menuItem);
+
             var content = new StringContent(
-                menuItem.GetRawText(),
+                System.Text.Json.JsonSerializer.Serialize(entity),
                 Encoding.UTF8,
                 "application/json");
 
@@ -76,13 +120,18 @@ namespace CoffeeNChill.Gateway.Controllers
         /// </summary>
         [HttpPut("category/{category}/{id}")]
         public async Task<IActionResult> UpdateMenuItem(
-            string category,
-            string id,
-            [FromBody] JsonElement menuItem)
+    string category,
+    string id,
+    [FromBody] MenuItemDto menuItem)
         {
+            menuItem.Category = category;
+            menuItem.Id = id;
+
+            var entity = _mappingService.MapToEntity(menuItem);
+
             var content = new StringContent(
-                menuItem.GetRawText(),
-                Encoding.UTF8,
+                System.Text.Json.JsonSerializer.Serialize(entity),
+                System.Text.Encoding.UTF8,
                 "application/json");
 
             var response = await _proxy.ForwardRequestAsync(
@@ -92,13 +141,14 @@ namespace CoffeeNChill.Gateway.Controllers
 
             return await CreateResult(response);
         }
+
         /// <summary>
         /// Deletes a menu item.
         /// </summary>
         [HttpDelete("category/{category}/{id}")]
         public async Task<IActionResult> DeleteMenuItem(
-            string category,
-            string id)
+    string category,
+    string id)
         {
             var response = await _proxy.ForwardRequestAsync(
                 HttpMethod.Delete,

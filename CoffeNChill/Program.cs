@@ -3,7 +3,14 @@ using Microsoft.Azure.Functions.Worker;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Azure.Functions.Worker.Builder;
+using Microsoft.Extensions.Configuration;
 
+
+var configuration = new ConfigurationBuilder()
+    .SetBasePath(Directory.GetCurrentDirectory())
+    .AddJsonFile("local.settings.json", optional: true)
+    .AddEnvironmentVariables()
+    .Build();
 
 var host = new HostBuilder()
     .ConfigureFunctionsWebApplication()
@@ -19,9 +26,9 @@ var host = new HostBuilder()
         services.AddSingleton<StaffFileService>(serviceProvider =>
         {
             var connectionString =
-                Environment.GetEnvironmentVariable("AzureWebJobsStorage")
-                ?? throw new InvalidOperationException(
-                    "AzureWebJobsStorage connection string is missing.");
+    Environment.GetEnvironmentVariable("AzureWebJobsStorage")
+    ?? configuration["Values:AzureWebJobsStorage"]
+    ?? throw new InvalidOperationException("AzureWebJobsStorage connection string is missing.");
 
             var service = new StaffFileService(connectionString);
 
